@@ -33,7 +33,7 @@ public class PricerVerticle extends AbstractVerticle {
         router.route().handler(BodyHandler.create());
         router.post("/prices").handler(rc -> {
             if (slow) {
-                vertx.setTimer(5000, l -> computeResponse(rc));
+                vertx.setTimer(2500 + random.nextInt(5000), l -> computeResponse(rc));
             } else {
                 computeResponse(rc);
             }

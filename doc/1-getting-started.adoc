@@ -1,0 +1,87 @@
+== Getting started
+
+In this section we starts OpenShift locally on your machine using the CDK (a.k.a. Minishift). Then, we bootstrap the project we are going to use in this lab.
+
+=== Prerequisites
+
+* CDK has been installed
+* `minishift` is available in the `$PATH`
+* You have downloaded / unpack the lab content into a directory.
+
+=== CDK setup
+
+If you never run the CDK, you need to run the following command in a terminal / command line invite:
+
+[source, bash]
+----
+minishift setup-cdk
+----
+
+When running this command, you will see in the output:
+
+[source, bash]
+----
+...
+Copying oc to '/Users/clement/.minishift/cache/oc/v3.5.5.8/oc'
+...
+----
+
+Put the given path to your system `$PATH` - here `/Users/clement/.minishift/cache/oc/v3.5.5.8/`. `oc` is the OpenShift Client that will let us interact with OpenShift from the command line. Don't forget to restart your terminal once set.
+
+=== Starting OpenShift
+
+As we are using CDK, you have a Red Hat developer account. These credentials are required for this step.
+
+In a terminal, execute:
+
+[source, bash]
+----
+minishift start --username=<account-email> --password=<account-password>
+----
+
+This command can take a couple of minutes to complete. Once done check that everything has worked:
+
+[source, bash]
+----
+> oc whoami
+developer
+> minishift console
+----
+
+This last command opens the browser to `https://192.168.64.12:8443/` (if the IP is not the same, use the address returned by the `minishift ip` command). In the browser, accept the connection despite the untrusted certificate. 
+
+Once on the login page, enter `developer/developer` as credentials:
+
+image::images/oc-login.png[]
+
+Once logged in, you should see the list of projects:
+
+image::images/oc-projects-1.png[]
+
+
+=== Creating a new project
+
+We are going to create a new project to run our different microservices. In the same terminal, go to workshop location:
+
+[source, bash]
+----
+oc new-project vertx-workshop
+oc policy add-role-to-user view admin -n vertx-workshop
+oc policy add-role-to-user view -n vertx-workshop -z default
+oc policy add-role-to-group view system:serviceaccounts -n vertx-workshop
+oc create -f scripts/templates/redis/redis.yaml
+oc create -f scripts/templates/redis/redis-rc.yaml
+oc create -f scripts/templates/redis/redis-service.yaml
+cd pricer-service
+mvn clean fabric8:deploy
+----
+
+The first command creates a new project named `vertx-workshop`. The commands 2 to 4 are setting the access on the different resources. The command 5 to 7 are deploying Redis. Finally, the 2 last commands builds and deploys a microservice we are going to use later.
+
+Once done, if you go back to the browser, a second projects has been created: `vertx-workshop`. Click on it. You should see the different entities created:
+
+image::images/overview-init.png[]
+
+=== What's next ?
+
+We have know an environment ready to host our microservice, but something is missing... our microservices. That's the next link:2-the-application.adoc[step].

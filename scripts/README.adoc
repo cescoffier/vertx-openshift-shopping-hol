@@ -1,0 +1,40 @@
+= Eclipse Vert.x and OpenShift workshop
+
+This repository contains a workshop / hands on lab about Eclipse Vert.x - a toolkit to create distributed and reactive systems, and Red Hat OpenShift - a container Cloud platform.
+
+== What are we building
+
+In this lab, we are building a set of _reactive_ microservices, developed with Eclipse Vert.x and running on OpenShift (Kubernetes). It's a step by step lab where you will develop every single step to run the different microservices.
+
+It covers:
+
+* Eclipse Vert.x
+* Asynchronous non-blocking development model and reactive programming
+* Service discovery
+* Providing a REST / HTTP microservice
+* Consuming a REST / HTTP microservice
+* Using a Redis database
+* Composing several microservice
+* Circuit breaker
+* Health checks
+
+== Prerequisites
+
+This lab has been designed to use:
+
+* Red Hat Container Development Kit (CDK)
+* JBoss Developer Studio (a certified Eclipse-based IDE)
+
+Download both from https://developers.redhat.com/products/devsuite/hello-world/.
+
+You will also need OpenJDK 8 and Apache Maven. OpenJDK can be installed from the JBoss developer suite (in the installer). Alternatively, install it from http://www.oracle.com/technetwork/java/javase/downloads/index.html. Apache Maven can be downloaded from http://maven.apache.org/download.cgi. Installation instructions are available on http://maven.apache.org/install.html.
+
+== Ready ? 
+
+Start the journey here: link:doc/1-getting-started.adoc[1 - Getting started].
+
+== Issues and improvements
+
+Just open an issue! Pull requests are more than welcome.
+
+

@@ -1,0 +1,30 @@
+= Reactive microservices hands-on lab
+
+This repository contains a hands-on lab about reactive microservices and their deployment in OpenShift
+
+You will learn:
+
+* How to create reactive microservices with link:http://vertx.io[Vert.x]
+* How to deploy them on link:http://openshift.com[OpenShift] using binary build and S2I
+* How to write REST API with Vert.x
+* How to use service discovery
+* How to compose asynchronous actions with RX Java (https://github.com/ReactiveX/RxJava)
+* How to use a circuit breaker
+
+== Prerequisites
+
+You will need:
+
+* OpenJDK 8 or Java 8 - Download it from http://www.oracle.com/technetwork/java/javase/downloads/index.html
+* Apache Maven - Download it from http://maven.apache.org/download.cgi. Installation instructions are on http://maven.apache.org/install.html
+* Red Hat Container Development Kit (CDK) - version 3+ - Download it from https://developers.redhat.com/products/cdk/overview/
+* JBoss developer studio (a certified Eclipse-based IDE) - Download it from https://developers.redhat.com/products/devstudio/overview/
+
+To download OpenJDK, CDK, and JBoss developer studio in one go, use:
+https://developers.redhat.com/products/devsuite/overview/
+
+(then you just need Maven)
+
+Then, link:https://github.com/cescoffier/vertx-openshift-shopping-hol/archive/master.zip[download] the content of this repository, and unzip it somewhere on your hard drive.
+
+When you are ready, start the link:doc/1-getting-started.adoc[journey].

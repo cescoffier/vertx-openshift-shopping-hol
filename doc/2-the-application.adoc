@@ -135,5 +135,5 @@ image:images/ide-oc-entities.png[]
 
 === What's next ?
 
-We are now ready to develop our first microservice, the shopping backend. Follow me, it's link::./3-the-shopping-backend.adoc[there].
+We are now ready to develop our first microservice, the shopping backend. Follow me, it's link:./3-the-shopping-backend.adoc[there].
 

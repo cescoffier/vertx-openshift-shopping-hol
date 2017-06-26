@@ -1,6 +1,6 @@
 == Protecting microservice with a circuit breaker
 
-A circuit breaker is an object monitoring an operation. It starts in a `closed` state. In this state, the circuit breaker lets the operation happening and monitors the outcome. If the operation fails, it increments a counter. When this counter reach a threshold, the circuit breaker switched to the `open` state. The operation is not executed anymore, but, instead, a fallback is executed. So, it stops calling a broken service. Periodically, the circuit breaker lets one call pass and calls the service. If the operation worked, the circuit breaker switches to the `closed` state and the system operates normally. If the operation failed, the service is still not back, and the circuit breaker stays in the `open` state. It will re-try periodically until the service is back on track.
+A circuit breaker is an object monitoring an operation. It starts in a `closed` state. In this state, the circuit breaker lets the operation happening and monitors the outcome. If the operation fails, it increments a counter. When this counter reaches a threshold, the circuit breaker switched to the `open` state. The operation is not executed anymore, but, instead, a fallback is executed immediately. So, it stops calling a broken service. Periodically, the circuit breaker lets one call pass and calls the service. If the operation worked, the circuit breaker switches to the `closed` state and the system operates normally. If the operation failed, the service is still not back on track, and the circuit breaker stays in the `open` state. It will re-try periodically until the service is operating normally.
 
 === The pricer service is a bad boy
 
@@ -13,11 +13,11 @@ In your browser, open `http://pricer-service-vertx-workshop.192.168.64.12.nip.io
 Slow mode enabled
 ----
 
-Now, refresh the `shopping-list-service` page. The page takes a lot more time to load because of the _slow_ mode. And fortunately, we called the pricer concurrently and not sequentially. Sequentially, it would be terrible (as we would add the waiting time).
+Now, refresh the `shopping-list-service` page. The page takes a lot more time to load because of the _slow_ mode. And fortunately, we called the pricer concurrently and not sequentially. Sequentially, it would be terrible (as we would accumulate the waiting time).
 
 === Using a circuit breaker
 
-Vert.x comes with its own circuit breaker implementation. you can use another one such as Netflix Hystrix, however be careful to the different threading models. 
+Vert.x comes with its own circuit breaker implementation. you can use another one such as Netflix Hystrix, however be careful to the different threading models (event loop vs. thread pools). 
 
 First, we need to create a circuit breaker object. Create the `circuit` field, and at the beginning of the `start` method adds:
 
@@ -36,6 +36,8 @@ circuit = CircuitBreaker.create("circuit-breaker", vertx,
 );
 ----
 
+It just configures the circuit breaker with a name, whether or not the fallback needs to be called on failure, the number of failure before switching to the `open` state, the amount of time before re-testing the service (reset) and the operation timeout.
+
 Then, in the `getShoppingList` method, replace `.flatMapSingle(item -> Shopping.retrievePrice(pricer, item))` by:
 
 [source, java]
@@ -50,7 +52,7 @@ Then, in the `getShoppingList` method, replace `.flatMapSingle(item -> Shopping.
 
 We wrap the call to the `pricer` in the `rxExecuteCommandWithFallback` method. The operation reports the success or failure of the operation. The second method provides a _fallback_ value.
 
-Redeploy the application with these changes. Once up to date, refresh the `shopping-list-service` page. It should be much faster to load (around 1-2 seconds, the circuit breaker timeout).
+Re-deploy the application with these changes. Once up to date, refresh the `shopping-list-service` page. It should be much faster to load (around 1-2 seconds, the circuit breaker timeout).
 
 In your browser, to toggle the pricer service back to normal mode, open `http://pricer-service-vertx-workshop.192.168.64.12.nip.io/toggle`. Replace the root url with the `pricer-service` route from the OpenShift console:
 
@@ -88,4 +90,4 @@ This concludes this labs. What have we seen:
 * How to compose service calls efficiently
 * How to use a circuit breaker
 
-Want go dig deeper. Download the link:https://developers.redhat.com/promotions/building-reactive-microservices-in-java/[Building Reactive Microservices in Java] minibook for free.
+Wanna dig deeper, download the link:https://developers.redhat.com/promotions/building-reactive-microservices-in-java/[Building Reactive Microservices in Java] minibook for free.

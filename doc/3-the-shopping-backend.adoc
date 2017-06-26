@@ -4,7 +4,7 @@ The shopping backend is a very simple microservice providing a shopping list man
 
 === Creating a project for our microservice
 
-In JBoss Developer Studio, create a new Maven project using: `File -> New -> Maven Project`. In the wizard, check the _Create a simple project (skip archetype selection)_ and add the project to the `vertx-workshop` working set. Then, click on `Next`:
+In JBoss Developer Studio, create a new Maven project using: `File -> New -> Maven Project`. In the wizard, check the _Create a simple project (skip archetype selection)_ checkbox and add the project to the `vertx-workshop` working set. Then, click on `Next`:
 
 image:images/ide-project-creation.png[]
 
@@ -45,7 +45,7 @@ image:images/ide-setup-shopping-backend.png[]
 io.fabric8:vertx-maven-plugin:1.0.8:setup -Ddependencies=redis,web,service-discovery,service-discovery-kubernetes,org.slf4j:slf4j-api:1.7.25
 ----
 
-This command add the Vert.x Maven Plugin to the `pom.xml` file and declare a couple of dependencies (required by our microservice).
+This command adds the Vert.x Maven Plugin to the `pom.xml` file and declares a couple of dependencies (required by our microservice).
 
 Once the form is filled, click on `Run`.
 
@@ -176,7 +176,7 @@ public void start() {
 }
 ----
 
-The `start` method is called when the verticle is deployed. In the method we create an HTTP server. On each request it writes "Hello" in the response. We start the server on the port 8080.
+The `start` method is called when the verticle is deployed. In the method, we create an HTTP server. On each request it writes "Hello" in the response. We start the server on the port 8080. Notice the _reactive_ style. On every request, the handler is called. The handler does not return a response but write into it using a non-blocking manner.
 
 The IDE may not like the lambda expression we used. Click on the error and select `Change project compliance and JRE to 1.8`.
 
@@ -191,7 +191,7 @@ image:images/ide-run-redeploy.png[]
 
 Then, click on `run`
 
-This _run configuration_ compiles and runs the Vert.x application. It track source changes and redeploys the application when needed.
+This _run configuration_ compiles and runs the Vert.x application. It tracks source code changes and redeploys the application when needed.
 
 So, now that the application is running, open a browser to http://localhost:8080, and you should see `hello`.
 
@@ -207,7 +207,7 @@ Let's now update the _request handler to be:
 	}
 ----
 
-Save the file. You will see the Maven redeploy in action. Refresh the browser. You should see: `Hello from vert.x-eventloop-thread-0`. Try to refresh it several times. It's always the same thread that is used. This is one of the core characteristics of Vert.x: verticles are single-threaded so you don't have to worry about state.
+Save the file. You can see the Maven redeploy in action. Refresh the browser. You should see: `Hello from vert.x-eventloop-thread-0`. Try to refresh it several times. It's always the same thread that is used. This is one of the core characteristics of Vert.x: verticles are single-threaded so you don't have to worry about state, field access... But don't forget, you must never block, because if you block the thread, the other request cannot be processed until the thread is released.
 
 == Develop a REST API
 
@@ -294,7 +294,7 @@ public class ShoppingBackendVerticle extends AbstractVerticle {
 }
 ----
 
-Now, open your browser to: http://localhost:8080/shopping. You should see `{}`. To add items, either use a REST client (in Chrome you can use the Advanced REST client, or Curl), or run the given client adding 3 items to the list. From the workshop directory run:
+Now, open your browser to: http://localhost:8080/shopping. You should see `{}`. To add items, either use a REST client (in Chrome you can use the Advanced REST client, or Curl), or run the given client adding 3 items to the list. From the workshop directory (`$WORKSHOP_DIR`) run (in a terminal):
 
 [source, bash]
 ----
@@ -314,9 +314,7 @@ java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://loca
 
 ### Deploying the microservice to OpenShift
 
-so we do have our first microservice, it's time to deploy it to OpenShift. OpenShift is a container platform, our application is going to run inside a container.
-
-OpenShift is a distribution of Kubernetes (https://kubernetes.io). It manages the deployment and orchestration of the different containers composing your system.
+So we do have our first microservice, it's time to deploy it to OpenShift. OpenShift is a container platform, our application is going to run inside a container. Actually, OpenShift is a distribution of Kubernetes (https://kubernetes.io). It manages the deployment and orchestration of the different containers composing your system.
 
 image:images/openshift-architecture.png[]
 
@@ -326,9 +324,9 @@ To deploy an application to OpenShift, there are several entities to create. It 
 
 image:images/openshift-entities.png[]
 
-First you have source code. We create a _build_ configuration on OpenShift. So, when we send the source code to OpenShift, it knows what needs to be done, and produces a container image. This image is pushed into the OpenShift registry. Then, we create a _deployment_ configuration instructing OpenShift about how to get our application running. In most case it just creates a _pod_ (a group of container, generally 1) with our application.
+First you have source code. We create a _build_ configuration on OpenShift. So, when we send the source code to OpenShift, it knows what needs to be done, and produces a container image. This image is pushed into the OpenShift registry. Then, we create a _deployment_ configuration instructing OpenShift about how to get our application running. In most case it just creates a _pod_ (a group of container, generally a single one) with our application.
 
-But that's not enough. Our application is running but we need to access it. For this, we create a _service_. It's an internal _virtual_ address exposing the endpoint offered by our application to the other application running in OpenShift. _Services_ delegate request to a set of pods using a round robin. But, we want to access the service from outside. For this, we need a _route_, delegating request on a public URL to a _service_. 
+But that's not enough. Our application is running but we need to access it. For this, we create a _service_. It's an internal _virtual_ address exposing the endpoint offered by our application to the other applications running in OpenShift. _Services_ delegate requests to a set of pods using a round-robin strategy. But, we want to access the service from outside. For this, we need a _route_, delegating request on a public URL to a _service_. 
 
 OpenShift proposes several strategies to deploy application. For the `shopping-backend` microservice, we are going to use the _manual_ way.
 
@@ -343,9 +341,9 @@ WORKDIR /vertx
 CMD java -jar *.jar -Dvertx.cacheDirBase=/tmp
 ----
 
-Stop the application if it's still running (click on the red square in the console tab). Then, package the application: Rick-click on the `pom.xml` file -> `Run As` -> `Maven Install`.
+Stop the application if it's still running (click on the red square in the console tab). Then, package the application: Right-click on the `pom.xml` file -> `Run As` -> `Maven Install`.
 
-In a terminal, navigate to the `shopping-backend` directory, and execute:
+In a terminal, navigate to the `shopping-backend` directory (in the _Eclipse workspace_), and execute:
 
 [source, bash]
 ----
@@ -364,7 +362,7 @@ When everything completes, go to the OpenShift console. You should see:
 
 image:images/oc-shopping-backend.png[]
 
-Click on the route url. You should see `hello`. Append `/shopping` to get the (empty) shopping list. Copy the route url (the page url without `/shopping`). In another terminal, navigate to the workshop directory,  and use the shopping list client to add items:
+Click on the route url. You should see `hello`. Append `/shopping` to get the (empty) shopping list. Copy the route url (the page url without `/shopping`). In another terminal, navigate to the `$WORKSHOP_DIR` directory,  and use the shopping list client to add items:
 
 [source, bash]
 ----

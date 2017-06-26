@@ -1,15 +1,15 @@
 = Reactive microservices hands-on lab
 
-This repository contains a hands-on lab about reactive microservices and their deployment in OpenShift
+This repository contains a hands-on lab about reactive microservices in Java and their deployment on OpenShift.
 
 You will learn:
 
 * How to create reactive microservices with link:http://vertx.io[Vert.x]
-* How to deploy them on link:http://openshift.com[OpenShift] using binary build and S2I
-* How to write REST API with Vert.x
-* How to use service discovery
+* How to deploy them on link:http://openshift.com[OpenShift] using binary build and S2I (using the link:http://maven.fabric8.io[Fabric8-Maven-Plugin])
+* How to write REST API with Vert.x using Vert.x Web
+* How to use service discovery and its combination with Kubernetes
 * How to compose asynchronous actions with RX Java (https://github.com/ReactiveX/RxJava)
-* How to use a circuit breaker
+* How to and why use a circuit breaker
 
 == Prerequisites
 
@@ -23,7 +23,7 @@ You will need:
 To download OpenJDK, CDK, and JBoss developer studio in one go, use:
 https://developers.redhat.com/products/devsuite/overview/
 
-(then you just need Maven)
+(then you just need Apache Maven)
 
 Then, link:https://github.com/cescoffier/vertx-openshift-shopping-hol/archive/master.zip[download] the content of this repository, and unzip it somewhere on your hard drive.
 

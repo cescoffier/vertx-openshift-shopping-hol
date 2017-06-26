@@ -1,24 +1,24 @@
 == The shopping list service
 
-We have completed our first microservice, no time for rest, we need a second one. This microservice depends on the `shopping-backend` service and another service already up and running the `pricer-service`. This second microservice, named `shopping-list-service` retrieved the shopping list from the `shopping-backend`, and for each item calls the `pricer-service`. All these interactions are asynchronous, and we would need to compose them.
+We have completed our first microservice, no time for rest, we need a second one. This microservice depends on the `shopping-backend` service and another service already up and running (the `pricer-service`). This second microservice, named `shopping-list-service` retrieved the shopping list from the `shopping-backend`, and for each item calls the `pricer-service`. All these interactions are asynchronous, and we would need to compose them.
 
 === Another microservice, another style
 
-In the first microservice, we used the `callback`-style Vert.x API. Callbacks are the first form of asynchronous APIs, but quickly lead to code difficult to read. To implement this second microservice we are going to use RX Java (version 1.x). RX Java is an implementation of Reactive eXtension (http://reactivex.io/) - an initiative from Microsoft to "compose asynchronous and event-based programs by using observable sequences".
+In the first microservice, we used the `callback`-style Vert.x API. Callbacks are the first form of asynchronous APIs, but quickly lead to code difficult to read. To implement this second microservice we are going to use RX Java (version 1.x). RX Java is an implementation of Reactive eXtension (http://reactivex.io/) - an initiative from Microsoft to _compose asynchronous and event-based programs by using observable sequences_.
 
 RX lets you tame the asynchronous beast without callbacks. Asynchronous interactions are represented as data stream, and as soon as a new item is emitted in one of these streams, you are notified and can transform / filter / compose / merge it. The result of these operations is another data streams.
 
-RX is lazy. All intermediate operations on streams only happen if there is a termination _subscription_. 
+RX is lazy. All intermediate operations on streams only happen if there is a terminal _subscription_. 
 
 Looks complex, don't worry we are going to see it in action.
 
 === Another microservice, another build strategy
 
-In the first microservice, we used a `Dockerfile` to build our application image. We also had to create a set of OpenShift entities. In this microservice, we are using another strategy: S2I. S2I stands for _source to image_. Generally speaking, S2I build takes the source code of the application, build it and packaged it on OpenShift. However, for Java development, while it's possible, it can be slow. Building a Java application with Maven or Gradle has the unfortunate trend to download Internet every single build. To avoid this, we are using a S2I with binary content. Instead of the source code, it takes the application jar as input  and builds an image with it using _production_ settings (configuration and command line to start the application).
+In the first microservice, we used a `Dockerfile` to build our application image. We also had to create a set of OpenShift entities. In this microservice, we are using another strategy: S2I. S2I stands for _source to image_. Generally speaking, S2I build takes the source code of the application, builds it and packages it on OpenShift. However, for Java development, while it's possible, it can be slow. Building a Java application with Maven or Gradle has the unfortunate trend to download Internet every single build. To avoid this, we are using a S2I with binary content. Instead of the source code, it takes the application jar as input and builds an image with it using _production_ settings (configuration and command to start the application).
 
-In addition, for this microservice, all these tasks are automated using the fabric8 Maven Plugin. So to build and deploy the application, a simple `mvn fabric8:deploy` and you're done!
+In addition, for this microservice, all these tasks are automated using the fabric8 Maven Plugin (https://maven.fabric8.io/). So to build and deploy the application, a simple `mvn fabric8:deploy` and you're done!
 
-The fabric8 maven plugin knows Vert.x. So it does not only generate the right image for your application, it can also create the health check procedures. 
+The fabric8 maven plugin and Vert.x are close friends. So it does not only generate the right image for your application, it can also create the health check procedures. 
 
 === Vert.x RX APIs
 
@@ -47,11 +47,11 @@ It's time to write some code to see how it looks like
 
 === Retrieving two services - Joining asynchronous operations
 
-In the preivous microservice we used the Vert.x service discovery to retrieve the Redis data store. In this microservice, we use the service discovery to retrieve two HTTP endpoints: the `shopping-backend` and the `pricer-service`. 
+In the previous microservice we used the Vert.x service discovery to retrieve the Redis data store. In this microservice, we use the service discovery to retrieve two HTTP endpoints: the `shopping-backend` and the `pricer-service`. 
 
 Retrieving services are asynchronous operations. We are going to do both at the same time and start the HTTP server when both services have been retrieved.
 
-After the route declaration, write the following code:
+After the route declarations, write the following code:
 
 [source, java]
 ----
@@ -83,12 +83,14 @@ ServiceDiscovery.create(vertx, discovery -> {
 
 In this snippet, we:
 
-1. Create the `ServiceDiscovery`
-2. Use `HttpEndpoint.rxGetWebClient` to retrieve the two services using their name. This operation returns a `Single`, i.e. a data stream of a single element.
+1. Create the `ServiceDiscovery` object.
+2. Use `HttpEndpoint.rxGetWebClient` to retrieve the two services using their names. This operation returns a `Single`, i.e. a data stream of a single element.
 3. When both streams have received their element (so both services have been retrieved), we store the services as fields (`pricer` and `shopping`) and starts the HTTP server.
-4. `subscribe` or nothing happens.
+4. `subscribe`, if you don't nothing happens.
 
-The `zip` operator is very handy to execute an action when several `Singles` have completed.
+`Single` is a data stream of one item. It's very handy to handle asynchronous action returning a _result_. When this result is ready, it's emitted in the stream and so you can react on it. 
+
+The `zip` operator is also very convenient to execute an action when several `Singles` have completed.
 
 === Sequential composition of asynchronous actions
 
@@ -114,29 +116,31 @@ Single<JsonObject> single = shopping.get("/shopping")
     .map(HttpResponse::bodyAsJsonObject);
 ----
 
-Now that we have the `Single` that will eventually get the shopping list, we want to call the pricer for every item.
+The `WebClient` is a HTTP client for Vert.x. Now that we have the `Single` that will eventually get the shopping list, we want to call the pricer for every item.
 
 [source, java]
 ----
 single
-    .flatMapObservable(list -> Observable.from(list))
-    .flatMapSingle(item -> Shopping.retrievePrice(pricer, item))
+    .flatMapObservable(list -> Observable.from(list)) // Transform the json document into a sequence of items (key - value)
+    .flatMapSingle(item -> Shopping.retrievePrice(pricer, item)) // Call the pricer
     .subscribe(
         json -> {
-            Shopping.writeProductLine(serverResponse, json);
+            Shopping.writeProductLine(serverResponse, json); // Write the response of the pricer into the HTTP response
         },
         rc::fail,
-        serverResponse::end
+        serverResponse::end // When all items have been estimated, flush the response
     );
 ----
 
-First, we transform the shopping list in an `Observable` (a sequence of data). Then, for each item of the list, we call the `pricer`. This operation happens once per item, but can be executed concurrently. Every time we get a response from the `pricer` it emits it. Finally, we _subscribe_, and for every `json` (response from the `pricer`) we write it into the HTTP response. The `subscribe` call has 3 methods:
+First, we transform the shopping list in an `Observable` (a sequence of data). Then, for each item of the list, we call the `pricer`. This operation happens once per item, but can be executed concurrently. Every time we get a response from the `pricer` it emits it into the stream. Finally, we _subscribe_, and for every `json` (response from the `pricer`) we write it into the HTTP response. The `subscribe` call has 3 methods:
 
 1. The first one is called for every item of the observed `Observable` - we write the chunk into the response
 2. The second one is called if something bad happens, we write a HTTP 500 error
 3. When we reach the end of the stream, we _end_ the response
 
 So to execute asynchronous action sequentially, you can use the `flatmap` operator. `flatmap` calls are executed concurrently.
+
+Notice the usage of chunked HTTP response. It's not required to compute the whole response and write it to the response. It's actually going to waste your memory. HTTP chunked responses allows writing to the wire as soon as you have something ready to be sent.
 
 === Time to build and run!
 

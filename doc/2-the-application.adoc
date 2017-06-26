@@ -2,33 +2,30 @@
 
 We are going to build a set of microservices to handle a "shopping list". The application is composed by 3 microservices:
 
-* the shopping backend
+* the shopping back-end
 * the pricer service (already developed and deployed)
-* the shopping list service retrieving the items from the shopping list backend and calling the pricer for each item.
+* the shopping list service retrieving the items from the shopping list back-end and calling the pricer for each item.
 
-The shopping backend exposes a HTTP endpoint (REST). The pricer-service also exposes a HTTP endpoint. The shopping list service invokes the two other services and expose the result on HTTP. These microservices are going to be reactive and developed with Vert.x
+The shopping back-end exposes a HTTP endpoint (REST). The pricer-service also exposes a HTTP endpoint. The shopping list service invokes the two other services and exposes the result on HTTP. These microservices are going to be reactive and developed with Vert.x.
 
 === Vert.x
 
-We will attempt to explain Vert.x in just a few lines. Remember that we said in the previous section that Vert.x is "a toolkit for building reactive applications on the JVM".
+We will attempt to explain Vert.x in just a few lines. If you go the Vert.x web page (http://vertx.io), Vert.x is described as "a toolkit for building reactive applications on the JVM".
 
-There are a three important points in this description: toolkit, reactive and "on the JVM".
+There are a three important points in this description: "toolkit", "reactive" and "on the JVM".
 
-Firstly, Vert.x is a toolkit. Meaning, Vert.x is not an application server, a container nor a framework. It’s not a JavaScript library either. Vert.x is a plain old jar file, so a Vert.x application is an application that uses this jar file. Vert.x does not define a packaging model, all Vert.x components are plain boring jar files. How does this impact you and your application? Let’s imagine you are using a build tool such as Maven or Gradle, to make your application a Vert.x application just add the vertx-core dependency. Wanna use another Vert.x components, just add it as a dependency. It’s simple, burden-less. Starting the application is a simple class with the public static void main(String[] args) entry point. No specific IDE or plugin to install to start using Vert.x.
+Firstly, Vert.x is a toolkit. Meaning, Vert.x is not an application server, a container nor a framework. Vert.x is a plain old jar file, so a Vert.x application is an application that uses this jar file. Vert.x does not define a packaging model, all Vert.x components are plain boring jar files. How does this impact you and your application? Let’s imagine you are using a build tool such as Maven or Gradle, to make your application a Vert.x application just add the `vertx-core` dependency. Wanna use another Vert.x components, just add it as a dependency. It’s simple, burden-less. Starting the application is a simple class with the `public static void main(String[] args)` entry point. No specific IDE or plugin to install to start using Vert.x.
 
 Therefore, to use the awesomeness provided by Vert.x, you just need to use it in your code, but be patient, this will be covered later.
 
-Secondly, Vert.x is reactive. It is specifically made to build reactive applications, or more appropriately, systems. Reactive systems has been defined in the Reactive Manifesto. Although, it’s not long document to read, we will further reduce it to these 4 bullet points:
+Secondly, Vert.x is reactive. It is specifically made to build reactive applications, or more appropriately, systems. Reactive systems has been defined in the Reactive Manifesto (http://www.reactivemanifesto.org/). Although, it’s not long document to read, we will further reduce it to these 4 bullet points:
 
 * Responsive: a reactive system needs to handle requests in a reasonable time (I let you define reasonable).
-
 * Resilient: a reactive system must stay responsive in the face of failures (crash, timeout, 500 errors…​), so it must be designed for failures and deal with them appropriately.
-
 * Elastic: a reactive system must stay responsive under various loads. As a consequence, it must scale up and down, and be able to handle the load with minimal resources.
-
 * Message driven: components from a reactive system interacts using asynchronous message-passing.
 
-Also, Vert.x is event-driven and also non-blocking. Events are delivered in an event loop that must never be blocked. Let’s explain why. Unlike traditional, let’s say "enterprise", systems, Vert.x uses a very small number of threads. Some of these threads are event loops, they are responsible for dispatching the events in Handlers. If you block this thread, the events won’t be delivered anymore. This execution model impacts how you write your code, instead of the traditional blocking code, your code is going to be asynchronous and non-blocking.
+Also, Vert.x is event-driven and also non-blocking. Events are delivered in an event loop that must never be blocked. Let’s explain why. Unlike traditional, let’s say "enterprise", systems, Vert.x uses a very small number of threads. Some of these threads are event loops, they are responsible for dispatching the events in `Handlers`. If you block this thread, the events won’t be delivered anymore. This execution model impacts how you write your code, instead of the traditional blocking code, your code is going to be asynchronous and non-blocking.
 
 As an example, if we wanted to retrieve a resource from a URL, we would do something like this:
 
@@ -55,17 +52,17 @@ vertx.createHttpClient().getNow(80, "vertx.io", "", response -> {
 
 The main differences between these 2 codes are:
 
-* the first one is synchronous and potentially blocking : the instructions are executed in order, and may block the thread for a long time (because the web site may be slow or whatever).
-* the Vert.x one is asynchronous and non-blocking: the thread (event loop) is released while the connection with the HTTP server is established and so can do something else. When the response has been received, the same event loop calls the callback. Most of the Vert.x components are single-threaded (accessed only by a single thread), so no concurrency burden anymore. By the way, with Vert.x, even the DNS resolution is asynchronous and non-blocking (while Java DNS resolution is blocking).
+* the first one is synchronous and blocking : the instructions are executed in order, and may block the thread for a long time (because the web site may be slow or whatever).
+* the Vert.x one is asynchronous and non-blocking: the thread (event loop) is released while the connection with the HTTP server is established and so can do something else. When the response has been received, the same event loop calls the callback. Most of the Vert.x components are single-threaded (accessed only by a single thread), so no concurrency burden anymore. 
 
-Finally, Vert.x applications runs "on the JVM" the Java Virtual Machine (8+). This means Vert.x applications can be developed using any language that runs on the JVM. Including Java(of course), Groovy, Ceylon, Ruby, JavaScript, Kotlin and Scala. We can even mix and match any combination of all these languages. The polyglot nature of Vert.x application allows you use the most appropriate language for the task.
+Finally, Vert.x applications runs "on the JVM" the Java Virtual Machine (8+). This means Vert.x applications can be developed using any language that runs on the JVM. Including Java (of course), Groovy, Ceylon, Ruby, JavaScript, Kotlin and Scala. We can even mix and match any combination of all these languages. The polyglot nature of Vert.x application allows you use the most appropriate language for the task.
 
 Vert.x lets you implement distributed applications, either by using the built-in TCP and HTTP server and client, but also using the Vert.x event bus, a lightweight mechanism to send and receive messages. 
 
-Wao!, that’s a lot of information to process... However, you might still want to ask: What kind of applications can I use Vert.x for? We say, Vert.x is incredibly flexible - whether it’s simple network utilities, sophisticated modern web applications, HTTP/REST microservices, high volume event processing or a full blown backend message-bus application, Vert.x is a great fit. It’s fast, and does not constraint you. Last but not least, Vert.x provides appropriate tools to build reactive systems; systems that are: responsive, elastic, resilient and asynchronous!
+Wao!, that’s a lot of information to process... However, you might still want to ask: What kind of applications can I use Vert.x for? We say, Vert.x is incredibly flexible - whether it’s simple network utilities, sophisticated modern web applications, HTTP/REST microservices, high volume event processing or a full blown back-end message-bus application, Vert.x is a great fit. It’s fast, and does not constraint you. Last but not least, Vert.x provides appropriate tools to build reactive systems; systems that are: responsive, elastic, resilient and asynchronous!
 
 === Demystifying microservices
-Except you spent the last year in a cave, you probably have heard about microservices. So what are microservices? To answer this questions, let’s quote from a veteran:
+Except you spent the last couple of years in a cave, you probably have heard about microservices. So what are microservices? To answer this questions, let’s quote from a veteran:
 
 [quote, Martin Fowler]
 ----
@@ -78,9 +75,9 @@ business capabilities and independently deployable by fully automated deployment
 ----
 (from http://martinfowler.com/articles/microservices.html)
 
-Microservice is an architectural style, which means it is a specialization of element and relation types, together with constraints and how they can be used. I believe by now, I have left you more confused than you before we started.
+Microservice is an architectural style, which means it is a specialization of element and relation types, together with constraints and how they can be used. I believe by now, I have left you more confused than before we started.
 
-Not to worry. Let’s take another approach. Why do we need microservices? In one word: agility. Let’s imagine, we have an application, rather large. As a large application, the maintenance is a nightmare, adding features take too much time, the technology used is very outdated (What? Corba is not cool anymore?), any change needs to pass a 50-steps process and be validated by 5 levels of management. Obviously there are several teams on the application with different requirements and agendas. Well, we have such a monster app. How could we make the development and maintenance of this application efficient? Microservices are one answer to this question. It aims to reduce the time to production.
+Not to worry. Let’s take another approach. Why do we need microservices? In one word: _agility_. Let’s imagine, we have an application, rather large. As a large application, the maintenance is a nightmare, adding features take too much time, the technology used is very outdated (What? Corba is not cool anymore?), any change needs to pass a 50-steps process and be validated by 5 levels of management. Obviously there are several teams on the application with different requirements and agendas. Well, we have such a _monster_ app. How could we make the development and maintenance of this application efficient? Microservices are one answer to this question. It aims to reduce the time to production.
 
 To do that end, the microservice architectural style proposes to:
 
@@ -91,8 +88,7 @@ To do that end, the microservice architectural style proposes to:
 * allow the deployments be automated in their own pipeline
 * allow the orchestration of the whole application be reduced to the barest minimum
 
-
-Point 6 is interesting, and often misunderstood. It’s pretty cool to develop independent pieces of software that magically interact at runtime. Yes, I said magically but in technology we don’t believe in magic. To make this happen, what we need is some form of service discovery at runtime. The service discovery mechanism can achieve it’s goal with any number of suitable means. These range from: hard-coding the service location in the code (which is generally a bad idea), using a DNS lookup service, or some more advanced techniques.
+The last point is interesting, and often misunderstood. It’s pretty cool to develop independent pieces of software that magically interact at runtime. Yes, I said magically but in technology we don’t believe in magic. To make this happen, what we need is some form of service discovery at runtime. The service discovery mechanism can achieve it’s goal with any number of suitable means. These range from: hard-coding the service location in the code (which is generally a bad idea), using a DNS lookup service, or some more advanced techniques.
 
 Having a service discovery mechanism allows our system components interact transparently amongst each other regardless of location or environment. It also allows us to easily load-balance amongst our components through a round robin algorithm, for example, thereby making our system more fault-tolerant (by locating another service provider when one breaks down).
 
@@ -126,6 +122,8 @@ image:images/ide-import-projects.png[]
 
 === Connect to OpenShift
 
+_This section is optional._
+
 We can connect the IDE with OpenShift. First, click on the `OpenShift Explorer` tab. Then, click on the `New Connection Wizard...` link. In the wizard, enter the following details:
 
 image:images/ide-oc-connection.png[]
@@ -140,5 +138,5 @@ image:images/ide-oc-entities.png[]
 
 === What's next ?
 
-We are now ready to develop our first microservice, the shopping backend. Follow me, it's link:./3-the-shopping-backend.adoc[there].
+We are now ready to develop our first microservice, the shopping back-end. Follow me, it's link:./3-the-shopping-backend.adoc[there].
 

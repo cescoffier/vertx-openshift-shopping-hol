@@ -18,9 +18,9 @@ oc scale dc shopping-backend --replicas=2
 
 Alternatively, you can use the arrows in the OpenShift console (on the right side of the pod).
 
-Once you have 2 replicas, OpenShift implements a round-robin to dispatch the requests. This is managed by the _service_.
+Once you have 2 replicas, OpenShift implements a round-robin to dispatch the requests. This is managed by the OpenShift _service_.
 
-If you refresh the page in your borwser, you should still see the different items we added into the list. So is it working.... 
+If you refresh the page in your browser, you should still see the different items we added into the list. So, is this working.... 
 
 === Oh no, the split shopping list syndrome !
 
@@ -31,13 +31,13 @@ With the shopping backend client run several times:
 java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-vertx-workshop.192.168.64.12.nip.io
 ----
 
-Every second requests, the shopping list is empty. This is because we keep the list in memory, and only on pod has it. We need to use a common data store.
+Every second requests, the shopping list is empty. This is because we keep the list in memory, and only on pod has it. We need to use a common data store to store the list, so all instances can access it.
 
 But why it's still working in the browser. It's because of `keep-alive`. OpenShift implements a connection affinity. Until the connection is closed, it uses the same pod. In the command line version, the connection is closed between calls.
 
 === Service discovery
 
-Ok, so let's use a shared data store, but I'm on the Cloud. How do I locate it. It's where Vert.x service discovery and Kubernetes / OpenShift integration help. When deployed on top of Kubernetes / OpenShift, the Vert.x service discovery can retrieve the services directly. In our case, we deployed a Redis database named `redis`:
+Ok, so let's use a shared data store, but I'm on the Cloud. How do I locate it? It's where Vert.x service discovery and Kubernetes / OpenShift integration helps. When deployed on top of Kubernetes / OpenShift, the Vert.x service discovery can retrieve the services directly. In our case, we deployed a Redis database named `redis`:
 
 image:images/oc-redis.png[]
 
@@ -57,7 +57,7 @@ Open the `ShoppingBackendVerticle` class. The first thing to do is to replace th
 private RedisClient redis;
 ----
 
-Redis is a key value data store. Let's use it in a very simple way and store the shopping list to a specific key. To make the code a bit more elegant, we declare the name of the key as constant:
+Redis is a key-value data store. Let's use it in a very simple way and store the shopping list to a specific key. To make the code a bit more elegant, we declare the name of the key as constant:
 
 [source, java]
 ----
@@ -108,13 +108,13 @@ Replace the `start` method with:
 	}
 ----
 
-Only the last part of the method has been changed. Now we get a Vert.x service discovery and retrieve the Redis client from it. We use a filter to select the service. To keep things simple, we just use the service name, but it can be any metadata.
+Only the last part of the method has been changed. Now we get a Vert.x service discovery and retrieve the Redis client from it. We use a filter to select the service. To keep things simple, we just use the service name, but we could have used other metadata.
 
-We can assigned the `redis` member from the callback because Vert.x is single-threaded, no risk for the state integrity. But the code is still not compiling, time to fix this !
+We can assigned the `redis` member from the callback because Vert.x is single-threaded, no risk for the state integrity. But the code is still not compiling, time to fix this!
 
 === Using the redis client
 
-Replace the 3 handler methods with:
+Replace the three handler methods with:
 
 [source, java]
 ----
@@ -153,7 +153,7 @@ Replace the 3 handler methods with:
 	}
 ----
 
-Instead of retrieving / updating the list, we now use the Redis client. We store the list in a _hash_ (a Json object), and update / read it accordingly.
+Instead of retrieving / updating the list, we now use the Redis client. We store the list in a _hash_ (a Json object), and update / read it accordingly. More details about the Vert.x Redis client and its API link:http://vertx.io/docs/vertx-redis-client/java/[here].
 
 === Full code
 
@@ -269,7 +269,7 @@ We just rebuild the application and re-trigger the build on OpenShift. Go to the
 
 image:images/oc-rolling-update.png[]
 
-It's a rolling update. Instead of stopping the application, and starting the new version, OpenShift, start the first pod of the new version and when it thinks it's ready, scale down the first version to 1 pod, start the second pod of the new version, and terminate the old version. This is pretty cool, because it should not involved downtime....
+It's a rolling update. Instead of stopping the application, and starting the new version, OpenShift starts the first pod of the new version and when it thinks it's ready, scales down the first version to 1 pod, starts the second pod of the new version, and terminate the last version pod. This is pretty cool, because it should not involved downtime....
 
 "Should", yes. As written, it shutdown the pods from the first version when OpenShift _thinks_ the new version is ready... But to think _well_, it needs a bit of help.
 
@@ -281,7 +281,7 @@ In the OpenShift console, click on `Applications` -> `Deployments`, and click on
 
 image:images/oc-shopping-backend-configuration.png[]
 
-On the next page, click on `Add Readiness Probe` and `Add Liveness Probe`. Readiness probe are used during the rolling update to determine when the application is ready. Liveness probe is a resilience mechanism to detect when the application has crashed. OpenShift automatically restart it.
+On the next page, click on `Add Readiness Probe` and `Add Liveness Probe`. Readiness probes are used during the rolling updates to determine when the application is actually ready. Liveness probes are a resilience mechanism to detect when the application has crashed. OpenShift automatically restart it.
 
 Then, click on `Save`.
 
@@ -289,14 +289,13 @@ Go back to the `Overview` and look at the rolling update. You can notice a new c
 
 image:images/oc-rolling-udpate-not-ready.png[]
 
-When it becomes ready (dark blue), OpenShift shutdown the pods from the previous version - this time we have 0 downtime.
+When it becomes ready (dark blue), OpenShift shutdown the pods from the previous version - this time we have 0 downtime!
 
 === Wait, we didn't check the split shopping list syndrome fix
 
 And you are right, let's do it right now!
 
-With your browser if you open the shopping list, it's empty. Of course, we didn't add any item.
-With the shopping list backend client, add items to the list as:
+With your browser if you open the shopping list, it's empty. Of course, we didn't add any item. With the shopping list backend client, add items to the list as:
 
 [source, bash]
 ----

@@ -4,7 +4,7 @@ We have completed our first microservice, no time for rest, we need a second one
 
 === Another microservice, another style
 
-In the first microservice, we used the `callback`-style Vert.x API. Callbacks are the first form of asynchronous APIs, but quickly lead to code difficult to read. To implement this second microservice we are going to use RX Java (version 1.x). RX Java is an implementation of Reactive eXtension (http://reactivex.io/) - an initiative from Microsoft to _compose asynchronous and event-based programs by using observable sequences_.
+In the first microservice, we used the `callback`-style Vert.x API. Callbacks are the first form of asynchronous APIs, but quickly lead to code difficult to read. To implement this second microservice we are going to use RX Java (version 2.x). RX Java is an implementation of Reactive eXtension (http://reactivex.io/) - an initiative from Microsoft to _compose asynchronous and event-based programs by using observable sequences_.
 
 RX lets you tame the asynchronous beast without callbacks. Asynchronous interactions are represented as data stream, and as soon as a new item is emitted in one of these streams, you are notified and can transform / filter / compose / merge it. The result of these operations is another data streams.
 
@@ -20,7 +20,7 @@ In addition, for this microservice, all these tasks are automated using the fabr
 
 The fabric8 maven plugin and Vert.x are close friends. So it does not only generate the right image for your application, it can also create the health check procedures. 
 
-=== Vert.x RX APIs
+=== Vert.x RX2 APIs
 
 Time to see some code. Open the `shopping-list-service` project and look at the `me.escoffier.demo.MyShoppingList` class. First look at the import statements and notice the `rxjava` packages:
 
@@ -28,20 +28,20 @@ Time to see some code. Open the `shopping-list-service` project and look at the 
 ----
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava.circuitbreaker.CircuitBreaker;
-import io.vertx.rxjava.core.AbstractVerticle;
-import io.vertx.rxjava.core.http.HttpServerResponse;
-import io.vertx.rxjava.ext.web.Router;
-import io.vertx.rxjava.ext.web.RoutingContext;
-import io.vertx.rxjava.ext.web.client.HttpResponse;
-import io.vertx.rxjava.ext.web.client.WebClient;
-import io.vertx.rxjava.servicediscovery.ServiceDiscovery;
-import io.vertx.rxjava.servicediscovery.types.HttpEndpoint;
-import rx.Observable;
-import rx.Single;
+import io.vertx.reactivex.circuitbreaker.CircuitBreaker;
+import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.servicediscovery.ServiceDiscovery;
+import io.vertx.reactivex.servicediscovery.types.HttpEndpoint;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 ----
 
-In this microservice we are using the Vert.x RX API. These packages contains classes with method prefixed with `rx` to indicate they return Reactive eXtension types (`Observable` or `Single`).
+In this microservice we are using the Vert.x RX2 API. These packages contains classes with method prefixed with `rx` to indicate they return Reactive eXtension types (`Flowable` or `Single`).
 
 It's time to write some code to see how it looks like
 
@@ -121,7 +121,7 @@ The `WebClient` is a HTTP client for Vert.x. Now that we have the `Single` that 
 [source, java]
 ----
 single
-    .flatMapObservable(list -> Observable.from(list)) // Transform the json document into a sequence of items (key - value)
+    .flatMapObservable(list -> Flowable.fromIterable(list)) // Transform the json document into a sequence of items (key - value)
     .flatMapSingle(item -> Shopping.retrievePrice(pricer, item)) // Call the pricer
     .subscribe(
         json -> {
@@ -144,11 +144,7 @@ Notice the usage of chunked HTTP response. It's not required to compute the whol
 
 === Time to build and run!
 
-Right click on the `shopping-list-service` project, select `Run As -> Maven Build ...`. In the build configuration, enter `fabric8:deploy` as `goals`:
-
-image:images/ide-shopping-list-service-deploy.png[]
-
-Then, click on `Run`.
+In your terminal, navigate to the `shopping-list-service` project, and run: `mvn fabric8:deploy`.
 
 Open the OpenShift console, and wait until the pod becomes ready. Because we use a S2I, the application starts with a monitoring agent. The startup time is impacted by this.
 

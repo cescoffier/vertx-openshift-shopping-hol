@@ -1,11 +1,11 @@
 package me.escoffier.demo;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava.core.Future;
-import io.vertx.rxjava.core.http.HttpServerResponse;
-import io.vertx.rxjava.ext.web.client.HttpResponse;
-import io.vertx.rxjava.ext.web.client.WebClient;
-import rx.Single;
+import io.vertx.reactivex.core.Future;
+import io.vertx.reactivex.core.http.HttpServerResponse;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.reactivex.Single;
 
 import java.util.Map;
 

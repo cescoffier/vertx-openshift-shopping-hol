@@ -6,7 +6,7 @@ A circuit breaker is an object monitoring an operation. It starts in a `closed` 
 
 The pricer service has a _slow_ mode. When this mode is enabled, the price request takes a lot more time to be processed. Let's have a look:
 
-In your browser, open `http://pricer-service-vertx-workshop.192.168.64.12.nip.io/toggle`. Replace the root url with the `pricer-service` route from the OpenShift console:
+In your browser, open `http://pricer-service-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/toggle`. (don't forget to replace the $id):
 
 [source]
 ----
@@ -54,7 +54,7 @@ We wrap the call to the `pricer` in the `rxExecuteCommandWithFallback` method. T
 
 Re-deploy the application with these changes. Once up to date, refresh the `shopping-list-service` page. It should be much faster to load (around 1-2 seconds, the circuit breaker timeout).
 
-In your browser, to toggle the pricer service back to normal mode, open `http://pricer-service-vertx-workshop.192.168.64.12.nip.io/toggle`. Replace the root url with the `pricer-service` route from the OpenShift console:
+In your browser, to toggle the pricer service back to normal mode, open `http://pricer-service-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/toggle`.
 
 [source]
 ----
@@ -79,7 +79,7 @@ and if you refresh again:
  * eggs x 3 = 72.0
 ----
 
-## And we are done !
+== And we are done !
 
 This concludes this labs. What have we seen:
 

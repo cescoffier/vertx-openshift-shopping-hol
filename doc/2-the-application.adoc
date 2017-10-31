@@ -8,7 +8,7 @@ We are going to build a set of microservices to handle a "shopping list". The ap
 
 The shopping back-end exposes a HTTP endpoint (REST). The pricer-service also exposes a HTTP endpoint. The shopping list service invokes the two other services and exposes the result on HTTP. These microservices are going to be reactive and developed with Vert.x.
 
-=== Vert.x
+=== Eclipse Vert.x
 
 We will attempt to explain Vert.x in just a few lines. If you go the Vert.x web page (http://vertx.io), Vert.x is described as "a toolkit for building reactive applications on the JVM".
 
@@ -25,7 +25,7 @@ Secondly, Vert.x is reactive. It is specifically made to build reactive applicat
 * Elastic: a reactive system must stay responsive under various loads. As a consequence, it must scale up and down, and be able to handle the load with minimal resources.
 * Message driven: components from a reactive system interacts using asynchronous message-passing.
 
-Also, Vert.x is event-driven and also non-blocking. Events are delivered in an event loop that must never be blocked. Let’s explain why. Unlike traditional, let’s say "enterprise", systems, Vert.x uses a very small number of threads. Some of these threads are event loops, they are responsible for dispatching the events in `Handlers`. If you block this thread, the events won’t be delivered anymore. This execution model impacts how you write your code, instead of the traditional blocking code, your code is going to be asynchronous and non-blocking.
+Also, Vert.x is event-driven and also non-blocking. Events are delivered in an event loop that must never be blocked. Let’s explain why. Unlike traditional, let’s say "enterprise", systems, Vert.x can be labelled as _container-native_. It uses a very small number of threads and makes an efficient use of the resources allowed to the application. Some of these threads managed by Vert.x are event loops, they are responsible for dispatching the events in `Handlers`. If you block this thread, the events won’t be delivered anymore. This execution model impacts how you write your code, instead of the traditional blocking code, your code is going to be asynchronous and non-blocking. It can be seen as constraining, but the responsiveness and efficiency promoted by this model is worth the price. In addition, we are going to see that Vert.x provides several development model so you can pick your favorite.
 
 As an example, if we wanted to retrieve a resource from a URL, we would do something like this:
 
@@ -114,27 +114,11 @@ Ok, enough talking for now, we need a bit of action.
 
 === Import the source code in the IDE
 
-Before starting developing, let's prepare the IDE. Open the JBoss developer studio. Configure the workspace wherever you want. 
+Before starting developing, let's prepare your IDE. You can use any Java-aware IDE such as JetBrains IntelliJ, Eclipse IDE, Visual Code, Apache Netbeans.  Import the code in your IDE as a Maven project. Refer to the IDE documentation if you cannot find the option.
 
-Then, import the projects using: `File -> Import`, select `Maven/Existing Maven Projects`. With the `browse` button, navigate to the workshop file root, and click on the `finish` button:
+If you are using Eclipse IDE, import the projects using: `File -> Import`, select `Maven/Existing Maven Projects`. With the `browse` button, navigate to the workshop file root, and click on the `finish` button:
 
 image:images/ide-import-projects.png[]
-
-=== Connect to OpenShift
-
-_This section is optional._
-
-We can connect the IDE with OpenShift. First, click on the `OpenShift Explorer` tab. Then, click on the `New Connection Wizard...` link. In the wizard, enter the following details:
-
-image:images/ide-oc-connection.png[]
-
-The password is `developer`.
-
-Then click on `Finish`. You need to accept the certificate. 
-
-Once the connection is established, you can see the different entities created in OpenShift directly from your IDE:
-
-image:images/ide-oc-entities.png[]
 
 === What's next ?
 

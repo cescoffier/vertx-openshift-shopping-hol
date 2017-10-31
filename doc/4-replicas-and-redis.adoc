@@ -1,11 +1,10 @@
-## Playing with replicas and the split shopping list issue
+== Playing with replicas and the split shopping list issue
 
 It's great to have deployed our microservice on OpenShift, but if you are using a Cloud platform, there is a good chance it's for scalability reason. In this chapter we are going to improve our microservice with:
 
 * running several replicas
 * using a shared data store
 * zero-downtime updates
-
 
 === Scale up !
 
@@ -24,11 +23,12 @@ If you refresh the page in your browser, you should still see the different item
 
 === Oh no, the split shopping list syndrome !
 
+
 With the shopping backend client run several times:
 
 [source, bash]
 ----
-java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-vertx-workshop.192.168.64.12.nip.io
+java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/shopping
 ----
 
 Every second requests, the shopping list is empty. This is because we keep the list in memory, and only on pod has it. We need to use a common data store to store the list, so all instances can access it.
@@ -287,7 +287,7 @@ Then, click on `Save`.
 
 Go back to the `Overview` and look at the rolling update. You can notice a new color (light blue). It indicates that the pod is not ready yet.
 
-image:images/oc-rolling-udpate-not-ready.png[]
+image:images/oc-rolling-update-not-ready.png[]
 
 When it becomes ready (dark blue), OpenShift shutdown the pods from the previous version - this time we have 0 downtime!
 
@@ -297,16 +297,17 @@ And you are right, let's do it right now!
 
 With your browser if you open the shopping list, it's empty. Of course, we didn't add any item. With the shopping list backend client, add items to the list as:
 
+
 [source, bash]
 ----
-java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-vertx-workshop.192.168.64.12.nip.io -a populate
+java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/shopping -a populate
 ----
 
 Then, retrieve the list several times with:
 
 [source, bash]
 ----
-java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-vertx-workshop.192.168.64.12.nip.io
+java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/shopping
 ----
 
 And it should be fixed! Every request get the items from the list. We fixed it! Woohoo!

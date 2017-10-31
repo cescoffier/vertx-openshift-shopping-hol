@@ -4,19 +4,16 @@ The shopping backend is a very simple microservice providing a shopping list man
 
 === Creating a project for our microservice
 
-In JBoss Developer Studio, create a new Maven project using: `File -> New -> Maven Project`. In the wizard, check the _Create a simple project (skip archetype selection)_ checkbox and add the project to the `vertx-workshop` working set. Then, click on `Next`:
-
-image:images/ide-project-creation.png[]
-
-In the second dialog, enter the following details:
+In your IDE, create a new Maven project / module. When asked, enter the following details:
 
 * Group Id: `me.escoffier.demo` (or whatever you want)
 * Artefact Id: `shopping-backend` (must be exactly this)
 * Name: Optional, if set must be `shopping-backend`
 
+In Eclipse, it should be:
+
 image:images/ide-project-creation-2.png[]
 
-Then, click on `Finish`.
 
 The `shopping-backend` project is now created. Let's open the `pom.xml` file. Double click on it to open it, and then select the `pom.xml` tab (last tab) to see the XML.
 
@@ -31,18 +28,11 @@ The `shopping-backend` project is now created. Let's open the `pom.xml` file. Do
 </project>
 ----
 
-As you can see, this is a very simple project. Let's add some vert.x in it. Right-click on the `pom.xml` file and select `Run As -> Maven Build ...`
-
-Complete the form as follows:
-
-image:images/ide-setup-shopping-backend.png[]
-
-* Enter the name you want.
-* Enter the following command as goal:
+In a terminal, navigate to the created directory and execute:
 
 [source]
 ----
-io.fabric8:vertx-maven-plugin:1.0.8:setup -Ddependencies=redis,web,service-discovery,service-discovery-kubernetes,org.slf4j:slf4j-api:1.7.25
+mvn io.fabric8:vertx-maven-plugin:1.0.13:setup -Ddependencies=redis,web,service-discovery,service-discovery-kubernetes,org.slf4j:slf4j-api:1.7.25
 ----
 
 This command adds the Vert.x Maven Plugin to the `pom.xml` file and declares a couple of dependencies (required by our microservice).
@@ -62,8 +52,8 @@ The `pom.xml` file has been updated with lots of new content:
   <version>0.0.1-SNAPSHOT</version>
   <name>shopping-backend</name>
   <properties>
-    <vertx.projectVersion>3.4.1</vertx.projectVersion>
-    <fabric8-vertx-maven-plugin.projectVersion>1.0.8</fabric8-vertx-maven-plugin.projectVersion>
+    <vertx.projectVersion>3.4.2</vertx.projectVersion>
+    <fabric8-vertx-maven-plugin.projectVersion>1.0.13</fabric8-vertx-maven-plugin.projectVersion>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -127,17 +117,13 @@ The `pom.xml` file has been updated with lots of new content:
 </project>
 ----
 
-If you go to the `Problems` tab, you will see that this new project has an error. It's due to the Maven support in Eclipse, not understanding the Vert.x Maven Plugin. Not a big deal. Right click on the error, select `Quick Fix`. Then, select "Mark goal initialize as ignored in pom.xml" and click on `Finish`:
-
-image:images/ide-initialize-quick-fix.png[]
-
 Go back to the `pom.xml` file editor, and in the `properties` add the following lines:
 
 [source, xml]
 ----
 <properties>
-    <vertx.projectVersion>3.4.1</vertx.projectVersion>
-    <fabric8-vertx-maven-plugin.projectVersion>1.0.8</fabric8-vertx-maven-plugin.projectVersion>
+    <vertx.projectVersion>3.4.2</vertx.projectVersion>
+    <fabric8-vertx-maven-plugin.projectVersion>1.0.13</fabric8-vertx-maven-plugin.projectVersion>
     <!-- to add: -->
     <vertx.verticle>me.escoffier.demo.ShoppingBackendVerticle</vertx.verticle>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -147,11 +133,11 @@ Go back to the `pom.xml` file editor, and in the `properties` add the following 
 
 The `vertx.verticle` property declares the endpoint of our application. A verticle is a Vert.x component, and it just instructs Vert.x to deploy it. The two other lines are configuring the Java version.
 
+**Optional:** You can update the Vert.x Project version to 3.5.0.
+
 === Implement our first verticle
 
-We have declared a verticle, but we need to implement it now. Right-click on the `shopping-backend` project, then select `New -> Class`. Enter `me.escoffier.demo` as package name and `ShoppingBackendVerticle` as name. Select `io.vertx.core.AbstractVerticle` as super class. Then click on `Finish`.
-
-Here is the generated class:
+We have declared a verticle, but we need to implement it now. Create a new class named `me.escoffier.demo.ShoppingBackendVerticle` as name. In the Java code add an extension clause on `AbstractVerticle` to obtain:
 
 [source, java]
 ----
@@ -182,16 +168,14 @@ The IDE may not like the lambda expression we used. Click on the error and selec
 
 === Run our application
 
-It's time to see what this does. Right-click on the `pom.xml` file, select `Run As -> Maven Build...`. In the form enter the following details:
+It's time to see what this does. In your terminal, in the module directory ($WOKSHOP_DIR/shopping-backend), run:
 
-image:images/ide-run-redeploy.png[]
+[source, bash]
+----
+mvn compile vertx:run
+----
 
-* Name: Vert.x redeploy
-* Goal: `compile vertx:run`
-
-Then, click on `run`
-
-This _run configuration_ compiles and runs the Vert.x application. It tracks source code changes and redeploys the application when needed.
+This command tracks source code changes and redeploys the application when needed.
 
 So, now that the application is running, open a browser to http://localhost:8080, and you should see `hello`.
 
@@ -312,7 +296,7 @@ java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://loca
 java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://localhost:8080 -a remove -p croissant
 ----
 
-### Deploying the microservice to OpenShift
+=== Deploying the microservice to OpenShift
 
 So we do have our first microservice, it's time to deploy it to OpenShift. OpenShift is a container platform, our application is going to run inside a container. Actually, OpenShift is a distribution of Kubernetes (https://kubernetes.io). It manages the deployment and orchestration of the different containers composing your system.
 
@@ -334,16 +318,15 @@ Ok, let's start. The first things to do is to create a `Dockerfile` in the `shop
 
 [source]
 ----
-FROM openjdk:8
+FROM openjdk:8-jre-alpine
 EXPOSE 8080
 COPY target/*.jar /vertx/
 WORKDIR /vertx
 CMD java -jar *.jar -Dvertx.cacheDirBase=/tmp
 ----
 
-Stop the application if it's still running (click on the red square in the console tab). Then, package the application: Right-click on the `pom.xml` file -> `Run As` -> `Maven Install`.
-
-In a terminal, navigate to the `shopping-backend` directory (in the _Eclipse workspace_), and execute:
+Stop the application if it's still running (CTRL+C to exit). Then in the terminal, run: `mvn clean package`.
+Then execute:
 
 [source, bash]
 ----
@@ -366,13 +349,14 @@ Click on the route url. You should see `hello`. Append `/shopping` to get the (e
 
 [source, bash]
 ----
-java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-vertx-workshop.192.168.64.12.nip.io -a populate
+# Substitute $id in the route url
+java -jar shopping-backend-client/bin/shopping-backend-client.jar -u http://shopping-backend-user$id.apps.vertx-javaday-workshop.35.197.63.242.nip.io/shopping -a populate
 ----
 
 (Replace the url used above with the route url)
 
-Now refresh the page in the browser to see the shopping list. Yoohoo ! We did it. First microservice running in OpenShift.
+Now refresh the page in the browser to see the shopping list. Yahoo! We did it. First microservice running in OpenShift.
 
-### Going further
+=== Going further
 
 That was just the first step, let's improve a bit our link:4-replicas-and-redis.adoc[microservice].

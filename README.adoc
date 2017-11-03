@@ -17,13 +17,9 @@ You will need:
 
 * OpenJDK 8 or Java 8 - Download it from http://www.oracle.com/technetwork/java/javase/downloads/index.html
 * Apache Maven - Download it from http://maven.apache.org/download.cgi. Installation instructions are on http://maven.apache.org/install.html
-* Red Hat Container Development Kit (CDK) - version 3+ - Download it from https://developers.redhat.com/products/cdk/overview/
-* JBoss developer studio (a certified Eclipse-based IDE) - Download it from https://developers.redhat.com/products/devstudio/overview/
-
-To download OpenJDK, CDK, and JBoss developer studio in one go, use:
-https://developers.redhat.com/products/devsuite/overview/
-
-(then you just need Apache Maven)
+* Minishift (https://github.com/minishift/minishift) if you want to run the lab locally (a Cloud account will be provided.
+* The OpenShift Command Line tool
+* An IDE
 
 Then, link:https://github.com/cescoffier/vertx-openshift-shopping-hol/archive/master.zip[download] the content of this repository, and unzip it somewhere on your hard drive.
 

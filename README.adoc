@@ -18,7 +18,7 @@ You will need:
 * OpenJDK 8 or Java 8 - Download it from http://www.oracle.com/technetwork/java/javase/downloads/index.html
 * Apache Maven - Download it from http://maven.apache.org/download.cgi. Installation instructions are on http://maven.apache.org/install.html
 * Minishift (https://github.com/minishift/minishift) if you want to run the lab locally (a Cloud account will be provided.
-* The OpenShift Command Line tool
+* The OpenShift Command Line tool (https://github.com/openshift/origin/releases/tag/v3.6.1)
 * An IDE
 
 Then, link:https://github.com/cescoffier/vertx-openshift-shopping-hol/archive/master.zip[download] the content of this repository, and unzip it somewhere on your hard drive.
